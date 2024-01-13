@@ -1,18 +1,17 @@
-package meteordevelopment.discordipc;
+package ccetl.discordipc;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import meteordevelopment.discordipc.connection.Connection;
 
 import java.lang.management.ManagementFactory;
-import java.util.function.BiConsumer;
 
+@SuppressWarnings("unused")
 public class DiscordIPC {
     private static final Gson GSON = new Gson();
 
-    private static BiConsumer<Integer, String> onError = DiscordIPC::defaultErrorCallback;
+    private static ErrorCallback errorCallback = new DefaultErrorCallback();
 
-    private static Connection c;
+    private static Connection connection;
     private static Runnable onReady;
 
     private static boolean receivedDispatch;
@@ -20,9 +19,11 @@ public class DiscordIPC {
 
     private static IPCUser user;
 
-    /** Sets the error callback */
-    public static void setOnError(BiConsumer<Integer, String> onError) {
-        DiscordIPC.onError = onError;
+    /**
+     * Sets the error callback
+     */
+    public static void setErrorCallback(ErrorCallback errorCallback) {
+        DiscordIPC.errorCallback = errorCallback;
     }
 
     /**
@@ -33,8 +34,8 @@ public class DiscordIPC {
      */
     public static boolean start(long appId, Runnable onReady) {
         // Open connection
-        c = Connection.open(DiscordIPC::onPacket);
-        if (c == null) return false;
+        connection = Connection.open(DiscordIPC::onPacket);
+        if (connection == null) return false;
 
         DiscordIPC.onReady = onReady;
 
@@ -42,7 +43,7 @@ public class DiscordIPC {
         JsonObject o = new JsonObject();
         o.addProperty("v", 1);
         o.addProperty("client_id", Long.toString(appId));
-        c.write(Opcode.Handshake, o);
+        connection.write(Opcode.Handshake, o);
 
         return true;
     }
@@ -51,7 +52,7 @@ public class DiscordIPC {
      * @return true if it is currently connected to a local Discord instance
      */
     public static boolean isConnected() {
-        return c != null;
+        return connection != null;
     }
 
     /**
@@ -66,18 +67,24 @@ public class DiscordIPC {
      * @param presence the rich presence to set the activity to
      */
     public static void setActivity(RichPresence presence) {
-        if (c == null) return;
+        if (connection == null) {
+            return;
+        }
 
         queuedActivity = presence.toJson();
-        if (receivedDispatch) sendActivity();
+        if (receivedDispatch) {
+            sendActivity();
+        }
     }
 
-    /** Closes the connection to the locally running Discord instance if it is open */
+    /**
+     * Closes the connection to the locally running Discord instance if it is open
+     */
     public static void stop() {
-        if (c != null) {
-            c.close();
+        if (connection != null) {
+            connection.close();
 
-            c = null;
+            connection = null;
             onReady = null;
             receivedDispatch = false;
             queuedActivity = null;
@@ -94,30 +101,34 @@ public class DiscordIPC {
         o.addProperty("cmd", "SET_ACTIVITY");
         o.add("args", args);
 
-        c.write(Opcode.Frame, o);
+        connection.write(Opcode.Frame, o);
         queuedActivity = null;
     }
 
     private static void onPacket(Packet packet) {
         // Close
-        if (packet.opcode() == Opcode.Close) {
-            if (onError != null) onError.accept(packet.data().get("code").getAsInt(), packet.data().get("message").getAsString());
+        if (packet.getOpcode() == Opcode.Close) {
+            errorCallback.error(packet.getData().get("code").getAsInt(), packet.getData().get("message").getAsString());
             stop();
         }
         // Frame
-        else if (packet.opcode() == Opcode.Frame) {
+        else if (packet.getOpcode() == Opcode.Frame) {
             // Error
-            if (packet.data().has("evt") && packet.data().get("evt").getAsString().equals("ERROR")) {
-                JsonObject d = packet.data().getAsJsonObject("data");
-                if (onError != null) onError.accept(d.get("code").getAsInt(), d.get("message").getAsString());
+            if (packet.getData().has("evt") && packet.getData().get("evt").getAsString().equals("ERROR")) {
+                JsonObject d = packet.getData().getAsJsonObject("data");
+                errorCallback.error(d.get("code").getAsInt(), d.get("message").getAsString());
             }
             // Dispatch
-            else if (packet.data().has("cmd") && packet.data().get("cmd").getAsString().equals("DISPATCH")) {
+            else if (packet.getData().has("cmd") && packet.getData().get("cmd").getAsString().equals("DISPATCH")) {
                 receivedDispatch = true;
-                user = GSON.fromJson(packet.data().getAsJsonObject("data").getAsJsonObject("user"), IPCUser.class);
+                user = GSON.fromJson(packet.getData().getAsJsonObject("data").getAsJsonObject("user"), IPCUser.class);
 
-                if (onReady != null) onReady.run();
-                if (queuedActivity != null) sendActivity();
+                if (onReady != null) {
+                    onReady.run();
+                }
+                if (queuedActivity != null) {
+                    sendActivity();
+                }
             }
         }
     }
@@ -127,7 +138,20 @@ public class DiscordIPC {
         return Integer.parseInt(pr.substring(0, pr.indexOf('@')));
     }
 
-    private static void defaultErrorCallback(int code, String message) {
-        System.err.println("Discord IPC error " + code + " with message: " + message);
+    protected static ErrorCallback getErrorCallback() {
+        return errorCallback;
+    }
+
+    private static class DefaultErrorCallback implements ErrorCallback {
+        @Override
+        @SuppressWarnings("CallToPrintStackTrace")
+        public void error(Throwable throwable) {
+            throwable.printStackTrace();
+        }
+
+        @Override
+        public void error(int code, String message) {
+            System.err.println("Discord IPC error " + code + " with message: " + message);
+        }
     }
 }

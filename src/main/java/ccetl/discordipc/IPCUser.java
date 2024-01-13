@@ -1,5 +1,6 @@
-package meteordevelopment.discordipc;
+package ccetl.discordipc;
 
+@SuppressWarnings("unused")
 public class IPCUser {
     public String id;
     public String username;

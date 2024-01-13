@@ -1,9 +1,9 @@
-package meteordevelopment.discordipc.connection;
+package ccetl.discordipc;
 
 import com.google.gson.JsonObject;
-import meteordevelopment.discordipc.Opcode;
-import meteordevelopment.discordipc.Packet;
+import org.apache.commons.exec.OS;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.UUID;
@@ -13,10 +13,8 @@ public abstract class Connection {
     private final static String[] UNIX_TEMP_PATHS = { "XDG_RUNTIME_DIR", "TMPDIR", "TMP", "TEMP" };
 
     public static Connection open(Consumer<Packet> callback) {
-        String os = System.getProperty("os.name").toLowerCase();
-
         // Windows
-        if (os.contains("win")) {
+        if (OS.isFamilyWindows()) {
             for (int i = 0; i < 10; i++) {
                 try {
                     return new WinConnection("\\\\?\\pipe\\discord-ipc-" + i, callback);
@@ -32,12 +30,14 @@ public abstract class Connection {
                 if (name != null) break;
             }
 
-            if (name == null) name = "/tmp";
+            if (name == null) {
+                name = "/tmp";
+            }
             name += "/discord-ipc-";
 
             for (int i = 0; i < 10; i++) {
                 try {
-                    return new UnixConnection(name + i, callback);
+                    return new UnixConnection(new File(name + i), callback);
                 } catch (IOException ignored) {}
             }
         }

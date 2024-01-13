@@ -1,26 +1,25 @@
-package meteordevelopment.discordipc.connection;
+package ccetl.discordipc;
 
 import com.google.gson.JsonParser;
-import meteordevelopment.discordipc.Opcode;
-import meteordevelopment.discordipc.Packet;
+import org.newsclub.net.unix.AFUNIXSocketAddress;
+import org.newsclub.net.unix.AFUNIXSocketChannel;
 
+import java.io.File;
 import java.io.IOException;
-import java.net.UnixDomainSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
-import java.nio.channels.SocketChannel;
 import java.nio.charset.Charset;
 import java.util.function.Consumer;
 
 public class UnixConnection extends Connection {
     private final Selector s;
-    private final SocketChannel sc;
+    private final AFUNIXSocketChannel sc;
     private final Consumer<Packet> callback;
 
-    public UnixConnection(String name, Consumer<Packet> callback) throws IOException {
+    public UnixConnection(File file, Consumer<Packet> callback) throws IOException {
         this.s = Selector.open();
-        this.sc = SocketChannel.open(UnixDomainSocketAddress.of(name));
+        this.sc = AFUNIXSocketChannel.open(AFUNIXSocketAddress.of(file));
         this.callback = callback;
 
         sc.configureBlocking(false);
@@ -44,7 +43,7 @@ public class UnixConnection extends Connection {
                 s.select();
 
                 switch (state) {
-                    case Opcode -> {
+                    case Opcode:
                         sc.read(intB);
                         if (intB.hasRemaining()) break;
 
@@ -52,8 +51,8 @@ public class UnixConnection extends Connection {
                         state = State.Length;
 
                         intB.rewind();
-                    }
-                    case Length -> {
+                        break;
+                    case Length:
                         sc.read(intB);
                         if (intB.hasRemaining()) break;
 
@@ -61,17 +60,17 @@ public class UnixConnection extends Connection {
                         state = State.Data;
 
                         intB.rewind();
-                    }
-                    case Data -> {
+                        break;
+                    case Data:
                         sc.read(dataB);
                         if (dataB.hasRemaining()) break;
 
-                        String data = Charset.defaultCharset().decode(dataB.rewind()).toString();
+                        String data = Charset.defaultCharset().decode((ByteBuffer) dataB.rewind()).toString();
                         callback.accept(new Packet(opcode, JsonParser.parseString(data).getAsJsonObject()));
 
                         dataB = null;
                         state = State.Opcode;
-                    }
+                        break;
                 }
             }
         } catch (Exception ignored) {}
@@ -82,7 +81,7 @@ public class UnixConnection extends Connection {
         try {
             sc.write(buffer);
         } catch (IOException e) {
-            e.printStackTrace();
+            DiscordIPC.getErrorCallback().error(e);
         }
     }
 
@@ -92,7 +91,7 @@ public class UnixConnection extends Connection {
             s.close();
             sc.close();
         } catch (IOException e) {
-            e.printStackTrace();
+            DiscordIPC.getErrorCallback().error(e);
         }
     }
 

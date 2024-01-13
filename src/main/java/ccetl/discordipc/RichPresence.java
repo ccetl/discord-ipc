@@ -1,7 +1,8 @@
-package meteordevelopment.discordipc;
+package ccetl.discordipc;
 
 import com.google.gson.JsonObject;
 
+@SuppressWarnings("unused")
 public class RichPresence {
     private String details;
     private String state;

@@ -1,7 +1,7 @@
 package example;
 
-import meteordevelopment.discordipc.DiscordIPC;
-import meteordevelopment.discordipc.RichPresence;
+import ccetl.discordipc.DiscordIPC;
+import ccetl.discordipc.RichPresence;
 
 import java.time.Instant;
 
@@ -25,6 +25,7 @@ public class Main {
         try {
             Thread.sleep(5000);
         } catch (InterruptedException e) {
+            //noinspection CallToPrintStackTrace
             e.printStackTrace();
         }
 

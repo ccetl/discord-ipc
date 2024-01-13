@@ -1,8 +1,6 @@
-package meteordevelopment.discordipc.connection;
+package ccetl.discordipc;
 
 import com.google.gson.JsonParser;
-import meteordevelopment.discordipc.Opcode;
-import meteordevelopment.discordipc.Packet;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -28,7 +26,7 @@ public class WinConnection extends Connection {
         try {
             raf.write(buffer.array());
         } catch (IOException e) {
-            e.printStackTrace();
+            DiscordIPC.getErrorCallback().error(e);
         }
     }
 
@@ -48,7 +46,7 @@ public class WinConnection extends Connection {
                 // Data
                 ByteBuffer dataB = ByteBuffer.allocate(length);
                 readFully(dataB);
-                String data = Charset.defaultCharset().decode(dataB.rewind()).toString();
+                String data = Charset.defaultCharset().decode((ByteBuffer) dataB.rewind()).toString();
 
                 // Call callback
                 callback.accept(new Packet(opcode, JsonParser.parseString(data).getAsJsonObject()));
@@ -60,15 +58,18 @@ public class WinConnection extends Connection {
         buffer.rewind();
 
         while (raf.length() < buffer.remaining()) {
-            Thread.onSpinWait();
+            Thread.yield();
             try {
+                //noinspection BusyWait
                 Thread.sleep(100);
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                DiscordIPC.getErrorCallback().error(e);
             }
         }
 
-        while (buffer.hasRemaining()) raf.getChannel().read(buffer);
+        while (buffer.hasRemaining()) {
+            raf.getChannel().read(buffer);
+        }
     }
 
     @Override
@@ -76,7 +77,7 @@ public class WinConnection extends Connection {
         try {
             raf.close();
         } catch (IOException e) {
-            e.printStackTrace();
+            DiscordIPC.getErrorCallback().error(e);
         }
     }
 }
