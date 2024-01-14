@@ -11,7 +11,7 @@ repositories {
 ```
 ```groovy
 dependencies {
-    implementation 'com.github.ccetl:discord-ipc:1.2'
+    implementation 'com.github.ccetl:discord-ipc:1.3'
     // not included but required are:
     implementation 'com.google.code.gson:gson:2.8.0'
     implementation 'com.kohlschutter.junixsocket:junixsocket-core:2.8.3'
