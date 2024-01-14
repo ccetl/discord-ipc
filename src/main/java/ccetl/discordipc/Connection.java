@@ -10,7 +10,7 @@ import java.util.UUID;
 import java.util.function.Consumer;
 
 public abstract class Connection {
-    private final static String[] UNIX_TEMP_PATHS = { "XDG_RUNTIME_DIR", "TMPDIR", "TMP", "TEMP" };
+    private final static String[] UNIX_TEMP_PATHS = {"XDG_RUNTIME_DIR", "TMPDIR", "TMP", "TEMP"};
 
     public static Connection open(Consumer<Packet> callback) {
         // Windows
@@ -18,7 +18,8 @@ public abstract class Connection {
             for (int i = 0; i < 10; i++) {
                 try {
                     return new WinConnection("\\\\?\\pipe\\discord-ipc-" + i, callback);
-                } catch (IOException ignored) {}
+                } catch (IOException ignored) {
+                }
             }
         }
         // Unix
@@ -27,7 +28,9 @@ public abstract class Connection {
 
             for (String tempPath : UNIX_TEMP_PATHS) {
                 name = System.getenv(tempPath);
-                if (name != null) break;
+                if (name != null) {
+                    break;
+                }
             }
 
             if (name == null) {
@@ -38,7 +41,8 @@ public abstract class Connection {
             for (int i = 0; i < 10; i++) {
                 try {
                     return new UnixConnection(new File(name + i), callback);
-                } catch (IOException ignored) {}
+                } catch (IOException ignored) {
+                }
             }
         }
 

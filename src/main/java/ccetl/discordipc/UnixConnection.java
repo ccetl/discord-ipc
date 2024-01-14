@@ -45,7 +45,9 @@ public class UnixConnection extends Connection {
                 switch (state) {
                     case Opcode:
                         sc.read(intB);
-                        if (intB.hasRemaining()) break;
+                        if (intB.hasRemaining()) {
+                            break;
+                        }
 
                         opcode = Opcode.valueOf(Integer.reverseBytes(intB.getInt(0)));
                         state = State.Length;
@@ -54,7 +56,9 @@ public class UnixConnection extends Connection {
                         break;
                     case Length:
                         sc.read(intB);
-                        if (intB.hasRemaining()) break;
+                        if (intB.hasRemaining()) {
+                            break;
+                        }
 
                         dataB = ByteBuffer.allocate(Integer.reverseBytes(intB.getInt(0)));
                         state = State.Data;
@@ -63,7 +67,9 @@ public class UnixConnection extends Connection {
                         break;
                     case Data:
                         sc.read(dataB);
-                        if (dataB.hasRemaining()) break;
+                        if (dataB.hasRemaining()) {
+                            break;
+                        }
 
                         String data = Charset.defaultCharset().decode((ByteBuffer) dataB.rewind()).toString();
                         callback.accept(new Packet(opcode, JsonParser.parseString(data).getAsJsonObject()));
@@ -73,7 +79,8 @@ public class UnixConnection extends Connection {
                         break;
                 }
             }
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
     }
 
     @Override

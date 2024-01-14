@@ -51,7 +51,8 @@ public class WinConnection extends Connection {
                 // Call callback
                 callback.accept(new Packet(opcode, JsonParser.parseString(data).getAsJsonObject()));
             }
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
     }
 
     private void readFully(ByteBuffer buffer) throws IOException {

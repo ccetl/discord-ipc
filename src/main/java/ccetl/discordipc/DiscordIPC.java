@@ -28,14 +28,17 @@ public class DiscordIPC {
 
     /**
      * Tries to open a connection to a locally running Discord instance
-     * @param appId the application id to use
+     *
+     * @param appId   the application id to use
      * @param onReady callback called when a successful connection happens, from that point {@link #getUser()} will return non-null object up until {@link #stop()} is called or an error happens
      * @return true if a connection was opened successfully
      */
     public static boolean start(long appId, Runnable onReady) {
         // Open connection
         connection = Connection.open(DiscordIPC::onPacket);
-        if (connection == null) return false;
+        if (connection == null) {
+            return false;
+        }
 
         DiscordIPC.onReady = onReady;
 
@@ -64,6 +67,7 @@ public class DiscordIPC {
 
     /**
      * Sets account's activity
+     *
      * @param presence the rich presence to set the activity to
      */
     public static void setActivity(RichPresence presence) {
