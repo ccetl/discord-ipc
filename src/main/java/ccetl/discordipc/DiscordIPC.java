@@ -2,11 +2,14 @@ package ccetl.discordipc;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
 import java.lang.management.ManagementFactory;
 
 @SuppressWarnings("unused")
 public class DiscordIPC {
+    protected static final JsonParser jsonParser = new JsonParser();
+
     private static final Gson GSON = new Gson();
 
     private static ErrorCallback errorCallback = new DefaultErrorCallback();

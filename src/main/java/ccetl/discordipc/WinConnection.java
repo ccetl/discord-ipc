@@ -1,7 +1,5 @@
 package ccetl.discordipc;
 
-import com.google.gson.JsonParser;
-
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
@@ -49,7 +47,7 @@ public class WinConnection extends Connection {
                 String data = Charset.defaultCharset().decode((ByteBuffer) dataB.rewind()).toString();
 
                 // Call callback
-                callback.accept(new Packet(opcode, JsonParser.parseString(data).getAsJsonObject()));
+                callback.accept(new Packet(opcode, DiscordIPC.jsonParser.parse(data).getAsJsonObject()));
             }
         } catch (Exception ignored) {
         }

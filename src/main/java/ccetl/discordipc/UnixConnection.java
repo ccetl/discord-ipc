@@ -1,6 +1,5 @@
 package ccetl.discordipc;
 
-import com.google.gson.JsonParser;
 import org.newsclub.net.unix.AFUNIXSocketAddress;
 import org.newsclub.net.unix.AFUNIXSocketChannel;
 
@@ -72,7 +71,7 @@ public class UnixConnection extends Connection {
                         }
 
                         String data = Charset.defaultCharset().decode((ByteBuffer) dataB.rewind()).toString();
-                        callback.accept(new Packet(opcode, JsonParser.parseString(data).getAsJsonObject()));
+                        callback.accept(new Packet(opcode, DiscordIPC.jsonParser.parse(data).getAsJsonObject()));
 
                         dataB = null;
                         state = State.Opcode;

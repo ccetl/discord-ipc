@@ -13,7 +13,7 @@ repositories {
 dependencies {
     implementation 'com.github.ccetl:discord-ipc:1.2'
     // not included but required are:
-    implementation 'com.google.code.gson:gson:2.8.9' 
+    implementation 'com.google.code.gson:gson:2.8.0'
     implementation 'com.kohlschutter.junixsocket:junixsocket-core:2.8.3'
     implementation 'org.apache.commons:commons-exec:1.3'
 }
