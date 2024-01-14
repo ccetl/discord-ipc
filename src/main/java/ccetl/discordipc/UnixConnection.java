@@ -71,7 +71,7 @@ public class UnixConnection extends Connection {
                         }
 
                         String data = Charset.defaultCharset().decode((ByteBuffer) dataB.rewind()).toString();
-                        callback.accept(new Packet(opcode, DiscordIPC.jsonParser.parse(data).getAsJsonObject()));
+                        callback.accept(new Packet(opcode, DiscordIPC.JSON_PARSER.parse(data).getAsJsonObject()));
 
                         dataB = null;
                         state = State.Opcode;

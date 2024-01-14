@@ -8,7 +8,7 @@ import java.lang.management.ManagementFactory;
 
 @SuppressWarnings("unused")
 public class DiscordIPC {
-    protected static final JsonParser jsonParser = new JsonParser();
+    protected static final JsonParser JSON_PARSER = new JsonParser();
 
     private static final Gson GSON = new Gson();
 

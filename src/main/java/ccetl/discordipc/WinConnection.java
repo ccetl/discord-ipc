@@ -47,7 +47,7 @@ public class WinConnection extends Connection {
                 String data = Charset.defaultCharset().decode((ByteBuffer) dataB.rewind()).toString();
 
                 // Call callback
-                callback.accept(new Packet(opcode, DiscordIPC.jsonParser.parse(data).getAsJsonObject()));
+                callback.accept(new Packet(opcode, DiscordIPC.JSON_PARSER.parse(data).getAsJsonObject()));
             }
         } catch (Exception ignored) {
         }
